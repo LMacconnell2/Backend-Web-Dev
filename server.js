@@ -47,7 +47,7 @@ app.get('/', (req, res) => {
     res.render('index', { title, content, NODE_ENV, PORT });
 }); 
 
-app.get('/contact', (req, res) => {
+app.get('/products', (req, res) => {
     const title = 'Contact Page';
     const content = '<h1>Welcome to the Contact Page</h1><p>This is the main content of the contact page.</p>';
     res.render('index', { title, content, NODE_ENV, PORT });
@@ -58,6 +58,55 @@ app.get('/about', (req, res) => {
     const content = '<h1>Welcome to the About Page</h1><p>This is the main content of the about page.</p>';
     res.render('index', { title, content, NODE_ENV, PORT });
 }); 
+
+// Test route that deliberately throws an error
+app.get('/test-error', (req, res, next) => {
+    try {
+        // Intentionally trigger an error
+        const nonExistentVariable = undefinedVariable;
+        res.send('This will never be reached');
+    } catch (err) {
+        // Forward the error to the global error handler
+        next(err);
+    }
+});
+
+// Test route that explicitly creates and forwards an error
+app.get('/manual-error', (req, res, next) => {
+    const err = new Error('This is a manually triggered error');
+    err.status = 500;
+    next(err); // Forward to the global error handler
+});
+
+/**
+ * Error Handling Middleware
+ */
+ 
+// Catch-all middleware for unmatched routes (404)
+app.use((req, res, next) => {
+    const err = new Error('Page Not Found');
+    err.status = 404;
+    next(err); // Forward to the global error handler
+});
+
+// Global error handler middleware
+app.use((err, req, res, next) => {
+    // Log the error for debugging
+    console.error(err.stack);
+ 
+    // Set default status and determine error type
+    const status = err.status || 500;
+    const context = {
+        title: status === 404 ? 'Page Not Found' : 'Internal Server Error',
+        error: err.message,
+        stack: err.stack,
+        // mode,
+        // port
+    };
+ 
+    // Render the appropriate template based on status code
+    res.status(status).render(`errors/${status === 404 ? '404' : '500'}`, context);
+});
 
 // When in development mode, start a WebSocket server for live reloading
 if (NODE_ENV.includes('dev')) {
