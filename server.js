@@ -27,18 +27,12 @@ app.set('view engine', 'ejs');
 // Set the views directory (where your templates are located)
 app.set('views', path.join(__dirname, 'src/views'));
 
-// Set Routes for the website
-// app.get('/', (req, res) => {
-//     res.sendFile(path.join(__dirname, '/src/views/index.html'));
-// });
- 
-// app.get('/page1', (req, res) => {
-//     res.sendFile(path.join(__dirname, '/src/views/page1.html'));
-// });
- 
-// app.get('/page2', (req, res) => {
-//     res.sendFile(path.join(__dirname, '/src/views/page2.html'));
-// });
+// Middleware to add current year to res.locals
+app.use((req, res, next) => {
+    // Get the current year for copyright notice
+    res.locals.currentYear = new Date().getFullYear();
+    next();
+});
 
 // Example of the refactored home route:
 app.get('/', (req, res) => {
@@ -48,13 +42,13 @@ app.get('/', (req, res) => {
 }); 
 
 app.get('/products', (req, res) => {
-    const title = 'Contact Page';
+    const title = 'Products Page';
     const content = '<h1>Welcome to the Contact Page</h1><p>This is the main content of the contact page.</p>';
     res.render('index', { title, content, NODE_ENV, PORT });
 }); 
 
 app.get('/about', (req, res) => {
-    const title = 'Contact Page';
+    const title = 'About Page';
     const content = '<h1>Welcome to the About Page</h1><p>This is the main content of the about page.</p>';
     res.render('index', { title, content, NODE_ENV, PORT });
 }); 
@@ -76,6 +70,25 @@ app.get('/manual-error', (req, res, next) => {
     const err = new Error('This is a manually triggered error');
     err.status = 500;
     next(err); // Forward to the global error handler
+});
+
+// Basic route with parameters for the EXPLORE ASSIGNMENT
+app.get('/explore/:category/:id', (req, res) => {
+    // Get route parameters
+    const { category, id } = req.params;
+ 
+    // Get query parameters (optional)
+    const { sort = 'default', filter = 'none' } = req.query;
+ 
+    // Log all parameters for debugging
+    console.log('Route Parameters:', req.params);
+    console.log('Query Parameters:', req.query);
+ 
+    // Set the title for the page
+    const title = `Exploring ${category}`;
+ 
+    // Render the template with all parameters
+    res.render('explore', { title, category, id, sort, filter, NODE_ENV });
 });
 
 /**
